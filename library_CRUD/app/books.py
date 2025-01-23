@@ -1,9 +1,9 @@
 from fastapi import HTTPException
-from app.database import get_db_connection,check_and_create_db
+from app.database import get_db_connection, check_and_create_db
 import sqlite3
 
 def add_book(title: str, author: str, genre: str, publication_year: int):
-    db = get_db_connection()  
+    db = get_db_connection()
     if db is None:
         raise HTTPException(status_code=500, detail="Database connection failed")
 
@@ -13,11 +13,11 @@ def add_book(title: str, author: str, genre: str, publication_year: int):
         VALUES (?, ?, ?, ?)
     """, (title, author, genre, publication_year))
     db.commit()
-    db.close()  
+    db.close()
     return {"message": "Book added successfully"}
 
 def list_books(author: str = None, genre: str = None):
-    db = get_db_connection()  
+    db = get_db_connection()
     if db is None:
         raise HTTPException(status_code=500, detail="Database connection failed")
 
@@ -43,11 +43,16 @@ def list_books(author: str = None, genre: str = None):
     return [{"id": book["id"], "title": book["title"], "author": book["author"], "genre": book["genre"], "publication_year": book["publication_year"]} for book in books]
 
 def edit_book(book_id: int, title: str = None, author: str = None, genre: str = None, publication_year: int = None):
-    db = get_db_connection()  
+    db = get_db_connection()
     if db is None:
         raise HTTPException(status_code=500, detail="Database connection failed")
-
+    
     cursor = db.cursor()
+    cursor.execute("SELECT COUNT(*) FROM books WHERE id = ?", (book_id,))
+    if cursor.fetchone()[0] == 0:
+        db.close()
+        raise HTTPException(status_code=404, detail="Book ID not found")
+
     updates = []
     params = []
 
@@ -65,6 +70,7 @@ def edit_book(book_id: int, title: str = None, author: str = None, genre: str = 
         params.append(publication_year)
 
     if not updates:
+        db.close()
         raise HTTPException(status_code=400, detail="No data to update")
 
     query = f"UPDATE books SET {', '.join(updates)} WHERE id = ?"
@@ -76,25 +82,28 @@ def edit_book(book_id: int, title: str = None, author: str = None, genre: str = 
     return {"message": "Book updated successfully"}
 
 def remove_book(book_id: int):
-    db = get_db_connection()  
+    db = get_db_connection()
     if db is None:
         raise HTTPException(status_code=500, detail="Database connection failed")
 
     cursor = db.cursor()
+
     if book_id:
-            cursor.execute("DELETE FROM books WHERE id = ?", (book_id,))
+        cursor.execute("SELECT COUNT(*) FROM books WHERE id = ?", (book_id,))
+        if cursor.fetchone()[0] == 0:
+            db.close()
+            raise HTTPException(status_code=404, detail="Book ID not found")
+        cursor.execute("DELETE FROM books WHERE id = ?", (book_id,))
     else:
         cursor.execute("SELECT COUNT(*) FROM books")
         count = cursor.fetchone()[0]
-        
         if count == 0:
-            print("No books found in the database.")
-        else:
-            cursor.execute("DELETE FROM books")
-            
-            cursor.execute("DELETE FROM sqlite_sequence WHERE name='books'")
-            
+            db.close()
+            return {"message": "No books found in the database to delete."}
+        cursor.execute("DELETE FROM books")
+        cursor.execute("DELETE FROM sqlite_sequence WHERE name='books'")
+
     db.commit()
     db.close()
-    
+
     return {"message": "Book(s) deleted successfully (if any existed), and ID counter reset if necessary."}
