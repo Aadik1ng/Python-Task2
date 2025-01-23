@@ -46,9 +46,22 @@ def create_tables():
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL,
                     email TEXT NOT NULL UNIQUE,
-                    age INTEGER NOT NULL
+                    Phone INTEGER NOT NULL
                 )
             """)
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS borrow_records (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                book_id INTEGER NOT NULL,
+                borrow_date TEXT NOT NULL,
+                return_date TEXT,
+                FOREIGN KEY (user_id) REFERENCES users (id),
+                FOREIGN KEY (book_id) REFERENCES books (id)
+            )
+        """)
+
+        
 
             print("Tables created successfully or already exist.")
     except sqlite3.OperationalError as e:

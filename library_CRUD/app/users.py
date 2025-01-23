@@ -1,19 +1,19 @@
 from fastapi import HTTPException
 from app.database import get_db_connection
 
-def add_user(name: str, email: str, age: int):
+def add_user(name: str, email: str, Phone: int):
     db = get_db_connection()
     if db is None:
         raise HTTPException(status_code=500, detail="Database connection failed")
 
     cursor = db.cursor()
     cursor.execute("""
-        INSERT INTO users (name, email, age)
+        INSERT INTO users (name, email, Phone)
         VALUES (?, ?, ?)
-    """, (name, email, age))
+    """, (name, email, Phone))
     db.commit()
     db.close()
-    return {"message": "User added successfully"}
+    return {"messPhone": "User added successfully"}
 
 def list_users():
     db = get_db_connection()
@@ -28,9 +28,9 @@ def list_users():
     if not users:
         raise HTTPException(status_code=404, detail="No users found")
 
-    return [{"id": user["id"], "name": user["name"], "email": user["email"], "age": user["age"]} for user in users]
+    return [{"id": user["id"], "name": user["name"], "email": user["email"], "Phone": user["Phone"]} for user in users]
 
-def edit_user(user_id: int, name: str = None, email: str = None, age: int = None):
+def edit_user(user_id: int, name: str = None, email: str = None, Phone: int = None):
     db = get_db_connection()
     if db is None:
         raise HTTPException(status_code=500, detail="Database connection failed")
@@ -45,9 +45,9 @@ def edit_user(user_id: int, name: str = None, email: str = None, age: int = None
     if email:
         updates.append("email = ?")
         params.append(email)
-    if age:
-        updates.append("age = ?")
-        params.append(age)
+    if Phone:
+        updates.append("Phone = ?")
+        params.append(Phone)
 
     if not updates:
         raise HTTPException(status_code=400, detail="No data to update")
@@ -58,7 +58,7 @@ def edit_user(user_id: int, name: str = None, email: str = None, age: int = None
     db.commit()
     db.close()
 
-    return {"message": "User updated successfully"}
+    return {"messPhone": "User updated successfully"}
 
 def remove_user(user_id: int):
     db = get_db_connection()
@@ -70,4 +70,4 @@ def remove_user(user_id: int):
     db.commit()
     db.close()
 
-    return {"message": "User deleted successfully"}
+    return {"messPhone": "User deleted successfully"}
