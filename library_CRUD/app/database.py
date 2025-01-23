@@ -32,15 +32,19 @@ def create_tables():
         with sqlite3.connect(DATABASE_PATH) as conn:
             cursor = conn.cursor()
 
+            # Create the books table with the available column
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS books (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     title TEXT NOT NULL,
                     author TEXT NOT NULL,
                     genre TEXT NOT NULL,
-                    publication_year INTEGER NOT NULL
+                    publication_year INTEGER NOT NULL,
+                    available INTEGER DEFAULT 1  -- 1 means available, 0 means borrowed
                 )
             """)
+
+            # Create the users table
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS users (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,19 +53,20 @@ def create_tables():
                     Phone INTEGER NOT NULL
                 )
             """)
-            cursor.execute("""
-            CREATE TABLE IF NOT EXISTS borrow_records (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                book_id INTEGER NOT NULL,
-                borrow_date TEXT NOT NULL,
-                return_date TEXT,
-                FOREIGN KEY (user_id) REFERENCES users (id),
-                FOREIGN KEY (book_id) REFERENCES books (id)
-            )
-        """)
 
-        
+            # Create the borrow_records table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS borrow_records (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    book_id INTEGER NOT NULL,
+                    user_id INTEGER NOT NULL,
+                    borrow_date TEXT NOT NULL,
+                    return_date TEXT,
+                    is_returned INTEGER DEFAULT 0,  -- 0 means not returned, 1 means returned
+                    FOREIGN KEY (book_id) REFERENCES books (id),
+                    FOREIGN KEY (user_id) REFERENCES users (id)
+                )
+            """)
 
             print("Tables created successfully or already exist.")
     except sqlite3.OperationalError as e:
