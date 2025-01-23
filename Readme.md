@@ -95,8 +95,7 @@ The system utilizes an SQLite database with the following schema:
 
 git clone https://github.com/your-username/library-management-system.git
 
-cd library-management-system
-
+cd library_CRUD
 ```
 
   
