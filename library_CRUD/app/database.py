@@ -41,6 +41,14 @@ def create_tables():
                     publication_year INTEGER NOT NULL
                 )
             """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    email TEXT NOT NULL UNIQUE,
+                    age INTEGER NOT NULL
+                )
+            """)
 
             print("Tables created successfully or already exist.")
     except sqlite3.OperationalError as e:
